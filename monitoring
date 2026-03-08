@@ -41,6 +41,7 @@
         table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 16px; overflow: hidden; font-size: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
         th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #f8f9fa; }
         th { background: #fafafa; color: #8e94a6; font-weight: 700; }
+        #loading-indicator { display: none; text-align: center; padding: 20px; font-weight: 600; color: #0055ff; }
     </style>
 </head>
 <body>
@@ -50,7 +51,7 @@
             <div class="brand-text">Smart Mobility Almaty</div>
             <p style="color:#8e94a6; font-size:13px; margin-bottom:20px;">Құпия сөзді енгізіңіз</p>
             <input type="password" id="pin-input" class="pin-input" placeholder="••••" inputmode="numeric">
-            <button class="login-btn" onclick="checkPin()">Кіру</button>
+            <button class="login-btn" onclick="checkPin()" id="login-submit">Кіру</button>
             <p id="pin-error" style="color:red; font-size:12px; display:none; margin-top:10px;">Қате құпия сөз!</p>
         </div>
     </div>
@@ -61,27 +62,29 @@
             <div class="montazh-title">Монтаж мониторингі</div>
         </div>
 
-        <div class="card status-card">
-            <div class="status-block">
-                <div><span class="status-number orange" id="total-count">--</span><span class="status-percent" id="total-percent"></span></div>
-                <div class="status-label">Барлық автобустар</div>
-            </div>
-            <div class="status-block" style="text-align: right; align-items: flex-end;">
-                <div class="status-number blue" id="latest-count">--</div>
-                <div class="status-label">Бүгін жасалған (Смена)</div>
-            </div>
-        </div>
+        <div id="loading-indicator">Деректер жүктелуде, күте тұрыңыз...</div>
 
-        <div class="section-header">Автопарктер статистикасы</div>
-        <div class="card" id="parks-container" style="padding: 10px 20px;">
-            Деректерді жүктеу...
-        </div>
+        <div id="dashboard-content" style="display:none;">
+            <div class="card status-card">
+                <div class="status-block">
+                    <div><span class="status-number orange" id="total-count">0</span><span class="status-percent" id="total-percent"></span></div>
+                    <div class="status-label">Барлық автобустар</div>
+                </div>
+                <div class="status-block" style="text-align: right; align-items: flex-end;">
+                    <div class="status-number blue" id="latest-count">0</div>
+                    <div class="status-label">Бүгін жасалған (Смена)</div>
+                </div>
+            </div>
 
-        <div class="filter-row">
-            <div class="filter-btn" onclick="openModal('routes-modal')">Маршруттар</div>
-            <div class="filter-btn" onclick="openModal('days-modal')">Смена бойынша</div>
+            <div class="section-header">Автопарктер статистикасы</div>
+            <div class="card" id="parks-container" style="padding: 10px 20px;"></div>
+
+            <div class="filter-row">
+                <div class="filter-btn" onclick="openModal('routes-modal')">Маршруттар</div>
+                <div class="filter-btn" onclick="openModal('days-modal')">Смена бойынша</div>
+            </div>
+            <button class="action-button" onclick="openModal('table-modal')">Толық тізімді көру</button>
         </div>
-        <button class="action-button" onclick="openModal('table-modal')">Толық тізімді көру</button>
     </div>
 
     <div class="modal" id="parks-modal"><div class="modal-container">
@@ -99,14 +102,14 @@
     <div class="modal" id="table-modal"><div class="modal-container">
         <button class="back-btn" onclick="closeModals()">← Артқа қайту</button>
         <div style="overflow-x:auto;"><table>
-            <thead><tr><th>Парк</th><th>Марш.</th><th>Борт №</th><th>Модель</th></tr></thead>
+            <thead><tr><th>Парк</th><th>Марш.</th><th>Борт/Гос №</th><th>Модель</th></tr></thead>
             <tbody id="table-content"></tbody>
         </table></div>
     </div></div>
 
     <script>
-        // === ВАЖНО: ВСТАВЬТЕ СЮДА ССЫЛКУ ИЗ GOOGLE APPS SCRIPT ===
-        const GOOGLE_API_URL = 'ВСТАВЬТЕ_ССЫЛКУ_СЮДА';
+        // Ваша ссылка на API Google Apps Script
+        const GOOGLE_API_URL = 'https://script.google.com/macros/s/AKfycbwAAICVP3PgeViaLBg1kRV0ZFG6TqIqot9UuBR4dXnXNori9BuaDLW8gpkaCechMKJV0w/exec';
         
         const PIN = '2019';
         
@@ -115,23 +118,26 @@
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('main-view').style.display = 'block';
                 loadData();
-            } else { 
-                document.getElementById('pin-error').style.display = 'block'; 
-            }
+            } else { document.getElementById('pin-error').style.display = 'block'; }
         }
 
         document.getElementById('pin-input').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') checkPin();
         });
 
-        function openModal(id) { document.getElementById('main-view').style.display = 'none'; document.getElementById(id).classList.add('active'); }
-        function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); document.getElementById('main-view').style.display = 'block'; }
+        function openModal(id) { document.getElementById('dashboard-content').style.display = 'none'; document.getElementById(id).classList.add('active'); }
+        function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); document.getElementById('dashboard-content').style.display = 'block'; }
 
         function loadData() {
-            // Теперь данные грузятся по прямой ссылке, без привязки к Google Script внутри браузера
+            document.getElementById('loading-indicator').style.display = 'block';
+            document.getElementById('dashboard-content').style.display = 'none';
+
             fetch(GOOGLE_API_URL)
                 .then(response => response.json())
                 .then(data => {
+                    document.getElementById('loading-indicator').style.display = 'none';
+                    document.getElementById('dashboard-content').style.display = 'block';
+
                     if(data.error) {
                         document.getElementById('parks-container').innerHTML = '<span style="color:red;">Қате: ' + data.error + '</span>';
                         return;
@@ -149,7 +155,7 @@
                     });
                     
                     if (data.parks.length > 5) {
-                        pHtml += `<button class="secondary-btn" onclick="openModal('parks-modal')">Барлығын көру (Тағы ${data.parks.length - 5})</button>`;
+                        pHtml += `<button class="secondary-btn" onclick="openModal('parks-modal')">Барлығын көру</button>`;
                     }
                     document.getElementById('parks-container').innerHTML = pHtml;
 
@@ -179,7 +185,9 @@
                     document.getElementById('table-content').innerHTML = tHtml;
                 })
                 .catch(err => {
-                    document.getElementById('parks-container').innerHTML = '<span style="color:red;">Қосылу қатесі: ' + err.message + '</span>';
+                    document.getElementById('loading-indicator').style.display = 'none';
+                    document.getElementById('dashboard-content').style.display = 'block';
+                    document.getElementById('parks-container').innerHTML = '<span style="color:red;">Қосылу қатесі: Сервер жауап бермейді. Сілтемені тексеріңіз.</span>';
                 });
         }
     </script>
