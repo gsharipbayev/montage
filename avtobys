@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Монтаж мониторингі</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; padding: 15px; font-family: 'Inter', sans-serif; background-color: #f4f5f9; display: flex; justify-content: center; -webkit-tap-highlight-color: transparent; }
+        .app-container { width: 100%; max-width: 400px; position: relative; display: none; margin: 0 auto; }
+        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f4f5f9; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
+        .login-card { background: #fff; padding: 30px; border-radius: 24px; width: 100%; max-width: 320px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .pin-input { width: 100%; padding: 15px; font-size: 24px; font-weight: 700; text-align: center; letter-spacing: 8px; border: 2px solid #f0f0f0; border-radius: 16px; margin-bottom: 20px; box-sizing: border-box; outline: none; }
+        .pin-input:focus { border-color: #0055ff; }
+        .login-btn { width: 100%; background: #000; color: #fff; border: none; padding: 18px; border-radius: 16px; font-size: 16px; font-weight: 700; cursor: pointer; }
+        .brand-text { color: #0055ff; font-size: 22px; font-weight: 900; letter-spacing: -0.5px; margin-bottom: 5px; }
+        .header-card { background-color: #ffffff; border-radius: 20px; padding: 20px; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .montazh-title { color: #8e94a6; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        .card { background-color: #ffffff; border-radius: 24px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .status-card { display: flex; justify-content: space-between; align-items: flex-start; }
+        .status-number { font-size: 34px; font-weight: 800; line-height: 1; margin-bottom: 6px; letter-spacing: -1px; }
+        .status-number.orange { color: #ff7a00; }
+        .status-number.blue { color: #0055ff; }
+        .status-percent { font-size: 15px; font-weight: 700; color: #8e94a6; margin-left: 2px; }
+        .status-label { color: #8e94a6; font-size: 12px; font-weight: 600; }
+        .section-header { font-size: 18px; font-weight: 800; color: #1a1b22; margin: 20px 0 12px 5px; }
+        .park-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f8f9fa; }
+        .park-row:last-child { border-bottom: none; }
+        .park-name { font-size: 14px; font-weight: 600; color: #1a1b22; max-width: 65%; }
+        .park-count { font-size: 14px; font-weight: 700; color: #0055ff; }
+        .filter-row { display: flex; gap: 10px; margin-bottom: 20px; }
+        .filter-btn { flex: 1; background: #fff; border-radius: 16px; padding: 16px 10px; color: #1a1b22; font-size: 13px; font-weight: 700; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.02); cursor: pointer; border: 1px solid #f0f0f0; }
+        .action-button { width: 100%; background: #000; color: #fff; border: none; border-radius: 20px; padding: 20px; font-size: 16px; font-weight: 700; cursor: pointer; margin-bottom: 30px; }
+        .secondary-btn { background: #f4f5f9; color: #000; margin-top: 10px; padding: 14px; border-radius: 14px; width: 100%; border: none; font-weight: 600; cursor: pointer;}
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f4f5f9; z-index: 1000; display: none; overflow-y: auto; }
+        .modal.active { display: block; }
+        .modal-container { width: 100%; max-width: 400px; margin: 0 auto; padding: 15px; box-sizing: border-box; }
+        .back-btn { background: #fff; color: #1a1b22; border: none; padding: 16px; border-radius: 16px; font-weight: 700; cursor: pointer; margin-bottom: 15px; width: 100%; text-align: left; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+        .list-item { background: #fff; padding: 16px; border-radius: 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.01); }
+        .list-val { color: #0055ff; font-weight: 700; }
+        table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 16px; overflow: hidden; font-size: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
+        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #f8f9fa; }
+        th { background: #fafafa; color: #8e94a6; font-weight: 700; }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <div class="login-card">
+            <div class="brand-text">Smart Mobility Almaty</div>
+            <p style="color:#8e94a6; font-size:13px; margin-bottom:20px;">Құпия сөзді енгізіңіз</p>
+            <input type="password" id="pin-input" class="pin-input" placeholder="••••" inputmode="numeric">
+            <button class="login-btn" onclick="checkPin()">Кіру</button>
+            <p id="pin-error" style="color:red; font-size:12px; display:none; margin-top:10px;">Қате құпия сөз!</p>
+        </div>
+    </div>
+
+    <div class="app-container" id="main-view">
+        <div class="header-card">
+            <div class="brand-text">Smart Mobility Almaty</div>
+            <div class="montazh-title">Монтаж мониторингі</div>
+        </div>
+
+        <div class="card status-card">
+            <div class="status-block">
+                <div><span class="status-number orange" id="total-count">--</span><span class="status-percent" id="total-percent"></span></div>
+                <div class="status-label">Барлық автобустар</div>
+            </div>
+            <div class="status-block" style="text-align: right; align-items: flex-end;">
+                <div class="status-number blue" id="latest-count">--</div>
+                <div class="status-label">Бүгін жасалған (Смена)</div>
+            </div>
+        </div>
+
+        <div class="section-header">Автопарктер статистикасы</div>
+        <div class="card" id="parks-container" style="padding: 10px 20px;">
+            Деректерді жүктеу...
+        </div>
+
+        <div class="filter-row">
+            <div class="filter-btn" onclick="openModal('routes-modal')">Маршруттар</div>
+            <div class="filter-btn" onclick="openModal('days-modal')">Смена бойынша</div>
+        </div>
+        <button class="action-button" onclick="openModal('table-modal')">Толық тізімді көру</button>
+    </div>
+
+    <div class="modal" id="parks-modal"><div class="modal-container">
+        <button class="back-btn" onclick="closeModals()">← Артқа қайту</button>
+        <div class="card" id="parks-full-content" style="padding: 10px 20px;"></div>
+    </div></div>
+    <div class="modal" id="routes-modal"><div class="modal-container">
+        <button class="back-btn" onclick="closeModals()">← Артқа қайту</button>
+        <div id="routes-content"></div>
+    </div></div>
+    <div class="modal" id="days-modal"><div class="modal-container">
+        <button class="back-btn" onclick="closeModals()">← Артқа қайту</button>
+        <div id="days-content"></div>
+    </div></div>
+    <div class="modal" id="table-modal"><div class="modal-container">
+        <button class="back-btn" onclick="closeModals()">← Артқа қайту</button>
+        <div style="overflow-x:auto;"><table>
+            <thead><tr><th>Парк</th><th>Марш.</th><th>Борт №</th><th>Модель</th></tr></thead>
+            <tbody id="table-content"></tbody>
+        </table></div>
+    </div></div>
+
+    <script>
+        // === ВАЖНО: ВСТАВЬТЕ СЮДА ССЫЛКУ ИЗ GOOGLE APPS SCRIPT ===
+        const GOOGLE_API_URL = 'ВСТАВЬТЕ_ССЫЛКУ_СЮДА';
+        
+        const PIN = '2019';
+        
+        function checkPin() {
+            if(document.getElementById('pin-input').value === PIN) {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('main-view').style.display = 'block';
+                loadData();
+            } else { 
+                document.getElementById('pin-error').style.display = 'block'; 
+            }
+        }
+
+        document.getElementById('pin-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') checkPin();
+        });
+
+        function openModal(id) { document.getElementById('main-view').style.display = 'none'; document.getElementById(id).classList.add('active'); }
+        function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); document.getElementById('main-view').style.display = 'block'; }
+
+        function loadData() {
+            // Теперь данные грузятся по прямой ссылке, без привязки к Google Script внутри браузера
+            fetch(GOOGLE_API_URL)
+                .then(response => response.json())
+                .then(data => {
+                    if(data.error) {
+                        document.getElementById('parks-container').innerHTML = '<span style="color:red;">Қате: ' + data.error + '</span>';
+                        return;
+                    }
+
+                    document.getElementById('total-count').innerText = data.totalDone;
+                    document.getElementById('total-percent').innerText = "(" + data.totalPercent + "%)";
+                    document.getElementById('latest-count').innerText = data.todayDone;
+                    
+                    let pHtml = '';
+                    let top5Parks = data.parks.slice(0, 5);
+                    top5Parks.forEach(p => {
+                        let pct = p.target > 0 ? ((p.done/p.target)*100).toFixed(1) : 0;
+                        pHtml += `<div class="park-row"><span class="park-name">${p.name}</span><span class="park-count">${p.done}/${p.target} (${pct}%)</span></div>`;
+                    });
+                    
+                    if (data.parks.length > 5) {
+                        pHtml += `<button class="secondary-btn" onclick="openModal('parks-modal')">Барлығын көру (Тағы ${data.parks.length - 5})</button>`;
+                    }
+                    document.getElementById('parks-container').innerHTML = pHtml;
+
+                    let fullPHtml = '';
+                    data.parks.forEach(p => {
+                        let pct = p.target > 0 ? ((p.done/p.target)*100).toFixed(1) : 0;
+                        fullPHtml += `<div class="park-row"><span class="park-name">${p.name}</span><span class="park-count">${p.done}/${p.target} (${pct}%)</span></div>`;
+                    });
+                    document.getElementById('parks-full-content').innerHTML = fullPHtml;
+
+                    let rHtml = '';
+                    data.routes.forEach(r => {
+                        rHtml += `<div class="list-item"><span>Маршрут ${r.name}</span><span class="list-val">${r.done}/${r.target} (${r.percent}%)</span></div>`;
+                    });
+                    document.getElementById('routes-content').innerHTML = rHtml;
+
+                    let dHtml = '';
+                    data.days.forEach(d => {
+                        dHtml += `<div class="list-item"><span>Смена ${d.date}</span><span class="list-val">${d.count} авто</span></div>`;
+                    });
+                    document.getElementById('days-content').innerHTML = dHtml;
+
+                    let tHtml = '';
+                    data.fullList.forEach(i => {
+                        tHtml += `<tr><td>${i.park.substring(0, 10)}</td><td>${i.route}</td><td>${i.garage}</td><td>${i.markModel.substring(0, 8)}</td></tr>`;
+                    });
+                    document.getElementById('table-content').innerHTML = tHtml;
+                })
+                .catch(err => {
+                    document.getElementById('parks-container').innerHTML = '<span style="color:red;">Қосылу қатесі: ' + err.message + '</span>';
+                });
+        }
+    </script>
+</body>
+</html>
